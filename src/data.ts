@@ -7,6 +7,10 @@ import {
   DayOfWeek,
   DoctorSchedule
 } from "./types";
+import clinicHeroImg from "./assets/images/clinic_hero_1781296076431.jpg";
+import highTechDentalImg from "./assets/images/high_tech_dental_1781296096733.jpg";
+import doctorFemaleImg from "./assets/images/doctor_headshot_1781296086374.jpg";
+import doctorMaleImg from "./assets/images/doctor_male_headshot_1781296109194.jpg";
 
 export const DAYS_OF_WEEK: DayOfWeek[] = [
   "Lunes",
@@ -87,13 +91,22 @@ export const DEFAULT_SPECIALTIES: SpecialtyItem[] = [
 export const DOCTOR_PORTRAIT_OPTIONS = [
   {
     label: "Retrato Especialista Femenino",
-    url: "/src/assets/images/doctor_headshot_1781296086374.jpg"
+    url: doctorFemaleImg
   },
   {
     label: "Retrato Especialista Masculino",
-    url: "/src/assets/images/doctor_male_headshot_1781296109194.jpg"
+    url: doctorMaleImg
   }
 ];
+
+export function resolveClinicImage(imagePath?: string): string {
+  if (!imagePath) return doctorFemaleImg;
+  if (imagePath.includes("doctor_headshot_1781296086374.jpg")) return doctorFemaleImg;
+  if (imagePath.includes("doctor_male_headshot_1781296109194.jpg")) return doctorMaleImg;
+  if (imagePath.includes("clinic_hero_1781296076431.jpg")) return clinicHeroImg;
+  if (imagePath.includes("high_tech_dental_1781296096733.jpg")) return highTechDentalImg;
+  return imagePath;
+}
 
 const VALENZUELA_SCHEDULE: DoctorSchedule = {
   Lunes: { enabled: true, slots: [...ALL_TIME_SLOTS] },
@@ -202,7 +215,7 @@ export const INITIAL_DOCTORS: Doctor[] = [
     name: "Dra. Sofía Valenzuela",
     specialty: Specialty.Estetica,
     experienceYears: 12,
-    image: "/src/assets/images/doctor_headshot_1781296086374.jpg",
+    image: doctorFemaleImg,
     bio: "Especialista reconocida en Estética Dental y Rehabilitación Oral. Graduada con honores en Barcelona, lidera los protocolos de Diseño de Sonrisa Digital (DSD) en Clínica IS Dental con enfoque conservador y natural.",
     education: "Máster en Odontología Estética y CAD/CAM (Universidad Europea de Madrid) · Certificada DSD",
     rating: 4.9,
@@ -214,7 +227,7 @@ export const INITIAL_DOCTORS: Doctor[] = [
     name: "Dr. Alejandro Méndez",
     specialty: Specialty.Implantologia,
     experienceYears: 16,
-    image: "/src/assets/images/doctor_male_headshot_1781296109194.jpg",
+    image: doctorMaleImg,
     bio: "Cirujano Maxilofacial con amplia trayectoria en implantología de carga inmediata guiada por tomografía 3D y reconstrucción ósea compleja. Conferencista internacional en cirugía mínimamente invasiva.",
     education: "Especialidad en Cirugía Oral y Maxilofacial (UBA) · Fellow de Implantología (Gotemburgo)",
     rating: 5.0,

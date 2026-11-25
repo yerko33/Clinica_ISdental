@@ -28,6 +28,7 @@ import {
   DEFAULT_SPECIALTIES,
   INITIAL_DOCTORS,
   INITIAL_TESTIMONIALS,
+  resolveClinicImage,
   slugifyId
 } from "./data";
 import { normalizeRut } from "./utils/rut";
@@ -145,8 +146,8 @@ export default function App() {
               name: String(data.name),
               specialty: String(data.specialty || "Odontología General"),
               experienceYears: Number(data.experienceYears ?? 5),
-              image: String(
-                data.image || "/src/assets/images/doctor_headshot_1781296086374.jpg"
+              image: resolveClinicImage(
+                typeof data.image === "string" ? data.image : undefined
               ),
               bio: String(data.bio || ""),
               education: String(data.education || ""),

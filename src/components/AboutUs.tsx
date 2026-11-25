@@ -3,6 +3,8 @@ import {
   ShieldCheck, Scan, HeartHandshake, ArrowRight,
   Target, Compass, CheckCircle2, Building2
 } from "lucide-react";
+import clinicHeroImg from "../assets/images/clinic_hero_1781296076431.jpg";
+import highTechDentalImg from "../assets/images/high_tech_dental_1781296096733.jpg";
 
 interface AboutUsProps {
   onBookNow: () => void;
@@ -81,7 +83,7 @@ export default function AboutUs({ onBookNow, onViewSpecialties }: AboutUsProps) 
             <div className="lg:col-span-5">
               <div className="rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 aspect-[4/3]">
                 <img
-                  src="/src/assets/images/clinic_hero_1781296076431.jpg"
+                  src={clinicHeroImg}
                   alt="Recepción e instalaciones de Clínica IS Dental"
                   className="w-full h-full object-cover"
                   referrerPolicy="no-referrer"
@@ -227,7 +229,7 @@ export default function AboutUs({ onBookNow, onViewSpecialties }: AboutUsProps) 
             <div className="lg:col-span-5 relative min-h-[280px] lg:min-h-[400px] bg-[#081226]">
               {!techImgError ? (
                 <img
-                  src="/src/assets/images/high_tech_dental_1781296096733.jpg"
+                  src={highTechDentalImg}
                   alt="Instalaciones y box clínico digital de Clínica IS Dental"
                   className="w-full h-full object-cover"
                   referrerPolicy="no-referrer"

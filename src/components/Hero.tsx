@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { ArrowRight, Building2 } from "lucide-react";
+import clinicHeroImg from "../assets/images/clinic_hero_1781296076431.jpg";
 
 interface HeroProps {
   onBookNow: () => void;
@@ -63,7 +64,7 @@ export default function Hero({ onBookNow, onViewSpecialties }: HeroProps) {
             <div className="relative w-full rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 min-h-[280px] sm:min-h-[340px] lg:min-h-[420px]">
               {!imgError ? (
                 <img
-                  src="/src/assets/images/clinic_hero_1781296076431.jpg"
+                  src={clinicHeroImg}
                   alt="Instalaciones clínicas modernas de Clínica IS Dental"
                   className="w-full h-full object-cover"
                   referrerPolicy="no-referrer"
