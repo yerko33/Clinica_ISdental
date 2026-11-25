@@ -1,0 +1,6 @@
+{
+  "name": "Elite Dental Care",
+  "description": "Portal dental premium de Elite Dental Care: reserva de citas, especialidades odontológicas, staff médico y atención personalizada de alta tecnología.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,91 @@
+{
+  "entities": {
+    "SpecialtyItem": {
+      "title": "SpecialtyItem",
+      "description": "Especialidad odontológica disponible en la clínica",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "name": { "type": "string", "minLength": 2, "maxLength": 100 },
+        "description": { "type": "string", "maxLength": 400 },
+        "createdBy": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "description", "createdBy", "createdAt"]
+    },
+    "Professional": {
+      "title": "Professional",
+      "description": "Profesional clínico con especialidad asignada y horario semanal",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "name": { "type": "string", "minLength": 2, "maxLength": 120 },
+        "specialty": { "type": "string", "minLength": 2, "maxLength": 100 },
+        "experienceYears": { "type": "number" },
+        "image": { "type": "string", "maxLength": 500 },
+        "bio": { "type": "string", "maxLength": 1000 },
+        "education": { "type": "string", "maxLength": 500 },
+        "rating": { "type": "number" },
+        "schedule": { "type": "object" },
+        "updatedBy": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "specialty", "experienceYears", "image", "bio", "education", "rating", "schedule", "updatedBy", "updatedAt"]
+    },
+    "StaffRole": {
+      "title": "StaffRole",
+      "description": "Permisos asignados a cuentas del personal (admin, recepcionista)",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "email": { "type": "string", "minLength": 3, "maxLength": 254 },
+        "isAdmin": { "type": "boolean" },
+        "isRecepcionista": { "type": "boolean" },
+        "addedBy": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "isAdmin", "isRecepcionista", "addedBy", "createdAt", "updatedAt"]
+    },
+    "AppointmentRecord": {
+      "title": "AppointmentRecord",
+      "description": "Cita médica reservada por un paciente (visible solo para permiso recepcionista)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "patientName": { "type": "string", "minLength": 2, "maxLength": 120 },
+        "patientRut": { "type": "string", "minLength": 7, "maxLength": 15 },
+        "patientEmail": { "type": "string", "minLength": 5, "maxLength": 254 },
+        "patientPhone": { "type": "string", "minLength": 6, "maxLength": 30 },
+        "treatmentId": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "treatmentName": { "type": "string", "minLength": 1, "maxLength": 140 },
+        "doctorId": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "doctorName": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "date": { "type": "string", "minLength": 10, "maxLength": 10 },
+        "timeSlot": { "type": "string", "minLength": 4, "maxLength": 16 },
+        "status": { "type": "string", "enum": ["confirmada", "atendida", "cancelada"] },
+        "notes": { "type": "string", "maxLength": 600 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "patientName", "patientRut", "patientEmail", "patientPhone", "treatmentId", "treatmentName", "doctorId", "doctorName", "date", "timeSlot", "status", "notes", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/specialties/{specialtyId}": {
+      "schema": { "$ref": "#/entities/SpecialtyItem" },
+      "description": "Catálogo de especialidades clínicas (lectura pública, gestión exclusiva de administradores)"
+    },
+    "/professionals/{doctorId}": {
+      "schema": { "$ref": "#/entities/Professional" },
+      "description": "Profesionales clínicos, sus especialidades y horarios semanales (lectura pública sin PII, gestión de administradores)"
+    },
+    "/staffRoles/{staffUid}": {
+      "schema": { "$ref": "#/entities/StaffRole" },
+      "description": "Roles de acceso del personal (admin y recepcionista)"
+    },
+    "/appointments/{appointmentId}": {
+      "schema": { "$ref": "#/entities/AppointmentRecord" },
+      "description": "Citas agendadas por pacientes (creación pública validada; lectura y gestión exclusiva con permiso recepcionista)"
+    }
+  }
+}

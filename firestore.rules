@@ -1,0 +1,241 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isBootstrappedAdmin() {
+      return isSignedIn() &&
+        request.auth.token.email == 'yerko.guerra.22@gmail.com' &&
+        request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      return isBootstrappedAdmin() || (
+        isSignedIn() &&
+        exists(/databases/$(database)/documents/staffRoles/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/staffRoles/$(request.auth.uid)).data.isAdmin == true
+      );
+    }
+
+    function isReceptionist() {
+      return isBootstrappedAdmin() || (
+        isSignedIn() &&
+        exists(/databases/$(database)/documents/staffRoles/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/staffRoles/$(request.auth.uid)).data.isRecepcionista == true
+      );
+    }
+
+    function isValidDaySchedule(dayObj) {
+      return dayObj is map &&
+        dayObj.keys().hasAll(['enabled', 'slots']) &&
+        dayObj.keys().hasOnly(['enabled', 'slots']) &&
+        dayObj.enabled is bool &&
+        dayObj.slots is list &&
+        dayObj.slots.size() <= 12 &&
+        (dayObj.slots.size() == 0 || (dayObj.slots[0] is string && dayObj.slots[0].size() <= 16));
+    }
+
+    function isValidWeeklySchedule(sched) {
+      return sched is map &&
+        sched.keys().hasAll(['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']) &&
+        sched.keys().hasOnly(['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']) &&
+        isValidDaySchedule(sched.Lunes) &&
+        isValidDaySchedule(sched.Martes) &&
+        isValidDaySchedule(sched['Miércoles']) &&
+        isValidDaySchedule(sched.Jueves) &&
+        isValidDaySchedule(sched.Viernes) &&
+        isValidDaySchedule(sched['Sábado']);
+    }
+
+    function isValidSpecialty(data, specId) {
+      return data is map &&
+        data.keys().hasAll(['id', 'name', 'description', 'createdBy', 'createdAt']) &&
+        data.keys().hasOnly(['id', 'name', 'description', 'createdBy', 'createdAt']) &&
+        data.id is string &&
+        data.id == specId &&
+        data.id.size() >= 1 &&
+        data.id.size() <= 64 &&
+        data.id.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.name is string &&
+        data.name.size() >= 2 &&
+        data.name.size() <= 100 &&
+        data.description is string &&
+        data.description.size() <= 400 &&
+        data.createdBy is string &&
+        data.createdBy.size() <= 128;
+    }
+
+    function isValidProfessional(data, docId) {
+      return data is map &&
+        data.keys().hasAll(['id', 'name', 'specialty', 'experienceYears', 'image', 'bio', 'education', 'rating', 'schedule', 'updatedBy', 'updatedAt']) &&
+        data.keys().hasOnly(['id', 'name', 'specialty', 'experienceYears', 'image', 'bio', 'education', 'rating', 'schedule', 'updatedBy', 'updatedAt']) &&
+        data.id is string &&
+        data.id == docId &&
+        data.id.size() >= 1 &&
+        data.id.size() <= 64 &&
+        data.id.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.name is string &&
+        data.name.size() >= 2 &&
+        data.name.size() <= 120 &&
+        data.specialty is string &&
+        data.specialty.size() >= 2 &&
+        data.specialty.size() <= 100 &&
+        data.experienceYears is number &&
+        data.experienceYears >= 0 &&
+        data.experienceYears <= 70 &&
+        data.image is string &&
+        data.image.size() <= 500 &&
+        data.bio is string &&
+        data.bio.size() <= 1000 &&
+        data.education is string &&
+        data.education.size() <= 500 &&
+        data.rating is number &&
+        data.rating >= 1 &&
+        data.rating <= 5 &&
+        isValidWeeklySchedule(data.schedule) &&
+        data.updatedBy is string &&
+        data.updatedBy == request.auth.uid &&
+        data.updatedBy.size() <= 128 &&
+        data.updatedAt == request.time;
+    }
+
+    function isValidStaffRole(data, staffUid) {
+      return data is map &&
+        data.keys().hasAll(['uid', 'email', 'isAdmin', 'isRecepcionista', 'addedBy', 'createdAt', 'updatedAt']) &&
+        data.keys().hasOnly(['uid', 'email', 'isAdmin', 'isRecepcionista', 'addedBy', 'createdAt', 'updatedAt']) &&
+        data.uid is string &&
+        data.uid == staffUid &&
+        data.uid.size() >= 1 &&
+        data.uid.size() <= 128 &&
+        data.uid.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.email is string &&
+        data.email.size() >= 3 &&
+        data.email.size() <= 254 &&
+        data.isAdmin is bool &&
+        data.isRecepcionista is bool &&
+        data.addedBy is string &&
+        data.addedBy.size() <= 128 &&
+        data.updatedAt == request.time;
+    }
+
+    function isValidAppointment(data, aptId) {
+      return data is map &&
+        data.keys().hasAll(['id', 'patientName', 'patientRut', 'patientEmail', 'patientPhone', 'treatmentId', 'treatmentName', 'doctorId', 'doctorName', 'date', 'timeSlot', 'status', 'notes', 'createdAt']) &&
+        data.keys().hasOnly(['id', 'patientName', 'patientRut', 'patientEmail', 'patientPhone', 'treatmentId', 'treatmentName', 'doctorId', 'doctorName', 'date', 'timeSlot', 'status', 'notes', 'createdAt']) &&
+        data.id is string &&
+        data.id == aptId &&
+        data.id.size() >= 1 &&
+        data.id.size() <= 64 &&
+        data.id.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.patientName is string &&
+        data.patientName.size() >= 2 &&
+        data.patientName.size() <= 120 &&
+        data.patientRut is string &&
+        data.patientRut.size() >= 7 &&
+        data.patientRut.size() <= 15 &&
+        data.patientEmail is string &&
+        data.patientEmail.size() >= 5 &&
+        data.patientEmail.size() <= 254 &&
+        data.patientPhone is string &&
+        data.patientPhone.size() >= 6 &&
+        data.patientPhone.size() <= 30 &&
+        data.treatmentId is string &&
+        data.treatmentId.size() >= 1 &&
+        data.treatmentId.size() <= 64 &&
+        data.treatmentName is string &&
+        data.treatmentName.size() >= 1 &&
+        data.treatmentName.size() <= 140 &&
+        data.doctorId is string &&
+        data.doctorId.size() >= 1 &&
+        data.doctorId.size() <= 64 &&
+        data.doctorName is string &&
+        data.doctorName.size() >= 1 &&
+        data.doctorName.size() <= 120 &&
+        data.date is string &&
+        data.date.size() == 10 &&
+        data.timeSlot is string &&
+        data.timeSlot.size() >= 4 &&
+        data.timeSlot.size() <= 16 &&
+        data.status is string &&
+        data.status in ['confirmada', 'atendida', 'cancelada'] &&
+        data.notes is string &&
+        data.notes.size() <= 600;
+    }
+
+    // Especialidades clínicas: lectura pública, escritura exclusiva Admin
+    match /specialties/{specialtyId} {
+      allow get: if isValidId(specialtyId);
+      allow list: if true;
+      allow create: if isAdmin() && isValidId(specialtyId) && isValidSpecialty(incoming(), specialtyId) &&
+        incoming().createdBy == request.auth.uid &&
+        incoming().createdAt == request.time;
+      allow update: if isAdmin() && isValidId(specialtyId) && isValidSpecialty(incoming(), specialtyId) &&
+        incoming().id == existing().id &&
+        incoming().createdBy == existing().createdBy &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().diff(existing()).affectedKeys().hasOnly(['name', 'description']);
+      allow delete: if isAdmin() && isValidId(specialtyId);
+    }
+
+    // Profesionales y horarios: lectura pública sin PII, escritura exclusiva Admin
+    match /professionals/{doctorId} {
+      allow get: if isValidId(doctorId);
+      allow list: if true;
+      allow create: if isAdmin() && isValidId(doctorId) && isValidProfessional(incoming(), doctorId);
+      allow update: if isAdmin() && isValidId(doctorId) && isValidProfessional(incoming(), doctorId) &&
+        incoming().id == existing().id &&
+        incoming().diff(existing()).affectedKeys().hasOnly(['name', 'specialty', 'experienceYears', 'image', 'bio', 'education', 'rating', 'schedule', 'updatedBy', 'updatedAt']);
+      allow delete: if isAdmin() && isValidId(doctorId);
+    }
+
+    // Roles de personal (admin y recepcionista)
+    match /staffRoles/{staffUid} {
+      allow get: if isSignedIn() && isValidId(staffUid) && (request.auth.uid == staffUid || isAdmin());
+      allow list: if isAdmin();
+      allow create: if isAdmin() && isValidId(staffUid) && isValidStaffRole(incoming(), staffUid) &&
+        incoming().addedBy == request.auth.uid &&
+        incoming().createdAt == request.time;
+      allow update: if isAdmin() && isValidId(staffUid) && isValidStaffRole(incoming(), staffUid) &&
+        incoming().uid == existing().uid &&
+        incoming().addedBy == existing().addedBy &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().diff(existing()).affectedKeys().hasOnly(['email', 'isAdmin', 'isRecepcionista', 'updatedAt']);
+      allow delete: if isAdmin() && isValidId(staffUid);
+    }
+
+    // Citas ingresadas por usuarios: creación pública validada, visualización y gestión exclusiva con permiso recepcionista
+    match /appointments/{appointmentId} {
+      allow get: if isReceptionist() && isValidId(appointmentId);
+      allow list: if isReceptionist();
+      allow create: if isValidId(appointmentId) && isValidAppointment(incoming(), appointmentId) &&
+        incoming().status == 'confirmada' &&
+        incoming().createdAt == request.time;
+      allow update: if isReceptionist() && isValidId(appointmentId) && isValidAppointment(incoming(), appointmentId) &&
+        incoming().id == existing().id &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().diff(existing()).affectedKeys().hasOnly(['status']);
+      allow delete: if false;
+    }
+  }
+}
